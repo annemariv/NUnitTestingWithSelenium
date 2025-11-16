@@ -274,7 +274,12 @@ namespace ShopTARge24TestingNUnit
         [TearDown]
         public void EndTest()
         {
-            driver.Close();
+            if (driver != null)
+            {
+                driver.Quit();
+                driver.Dispose();
+                driver = null;
+            }
         }
     }
 }
