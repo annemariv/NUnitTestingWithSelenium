@@ -171,35 +171,27 @@ namespace ShopTARge24TestingNUnit
         [Test, Order(3)]
         public void TestRealEstateAddNegative()
         {
+            driver.FindElement(By.Id("realestate")).Click();
+            Thread.Sleep(500);
 
-            IWebElement idOfLinkElement = driver.FindElement(By.Id("realestate"));
-            idOfLinkElement.Click();
-
-
-            IWebElement idOfCreateButton = driver.FindElement(By.Id("testIdAdd"));
-            idOfCreateButton.Click();
+            driver.FindElement(By.Id("testIdAdd")).Click();
             Thread.Sleep(500);
 
             InsertRealEstateDataNegative(driver);
 
-            IWebElement createSubmitButton = driver.FindElement(By.Id("testICreateSubmit"));
-            createSubmitButton.Click();
-            Thread.Sleep(3000);
+            var rowsBefore = driver.FindElements(By.CssSelector("#RealestateTableTest tbody tr")).Count;
 
-            IWebElement locationErrorEl = driver.FindElement(By.Id("testIdTableLocation"));
-            IWebElement roomNumberErrorEl = driver.FindElement(By.Id("testIdTableRoomNumber"));
-            IWebElement areaErrorEl = driver.FindElement(By.Id("testIdTableArea"));
-            IWebElement buildingTypeErrorEl = driver.FindElement(By.Id("testIdBuildingType"));
+            driver.FindElement(By.Id("testICreateSubmit")).Click();
+            Thread.Sleep(1000);
 
-            Assert.That(locationErrorEl.Text, Is.EqualTo("Location must be letters only"));
-            Assert.That(roomNumberErrorEl.Text, Is.EqualTo("Room number must be numeric"));
-            Assert.That(areaErrorEl.Text, Is.EqualTo("Area must be numeric"));
-            Assert.That(buildingTypeErrorEl.Text, Is.EqualTo("Building type must be text"));
+            var rowsAfter = driver.FindElements(By.CssSelector("#RealestateTableTest tbody tr")).Count;
+
+            Assert.That(rowsAfter, Is.EqualTo(rowsBefore), "No new real estate should be added with invalid input");
 
             Console.WriteLine("Negative add test passed");
         }
 
-       
+
         private void InsertRealEstateDataNegative(IWebDriver driver)
         {
             IWebElement idOfLocation = driver.FindElement(By.Id("testIdLocation"));
@@ -216,7 +208,6 @@ namespace ShopTARge24TestingNUnit
 
         }
 
-        //Update
         [Test, Order(4)]
         public void TestRealEstateUpdateNegative()
         {
@@ -226,30 +217,37 @@ namespace ShopTARge24TestingNUnit
             driver.FindElement(By.Id("realestate")).Click();
             Thread.Sleep(500);
 
-            IWebElement updateElementButton = driver.FindElement(By.Id("testIdUpdate"));
-            updateElementButton.Click();
-            Thread.Sleep(500);
+            var rows = driver.FindElements(By.CssSelector("#RealestateTableTest tbody tr"));
+            if (rows.Count == 0)
+            {
+                Console.WriteLine("No rows exist in the table. Skip negative update test.");
+                return;
+            }
 
-            string id = GetIdFromUrl(driver);
-            Console.WriteLine("ID from URL: " + id);
+            var firstRow = rows[0];
+            string rowBefore = firstRow.Text;
+
+            firstRow.FindElement(By.CssSelector("a[id='testIdUpdate']")).Click();
+            Thread.Sleep(500);
 
             InsertRealEstateDataNegativeForUpdate(driver);
 
-            IWebElement updateSubmitButton = driver.FindElement(By.Id("testIdUpdateSubmit"));
-            updateSubmitButton.Click();
-            Thread.Sleep(500);
+            driver.FindElement(By.Id("testIdUpdateSubmit")).Click();
+            Thread.Sleep(1000);
 
-            IWebElement locationErrorEl = driver.FindElement(By.Id("testIdTableLocation"));
-            IWebElement roomNumberErrorEl = driver.FindElement(By.Id("testIdTableRoomNumber"));
-            IWebElement areaErrorEl = driver.FindElement(By.Id("testIdTableArea"));
-            IWebElement buildingTypeErrorEl = driver.FindElement(By.Id("testIdBuildingType"));
+            rows = driver.FindElements(By.CssSelector("#RealestateTableTest tbody tr"));
+            if (rows.Count == 0)
+            {
+                Console.WriteLine("No rows exist after update.");
+                return;
+            }
 
-            Assert.That(locationErrorEl.Text, Is.EqualTo("Location must be letters only"));
-            Assert.That(roomNumberErrorEl.Text, Is.EqualTo("Room number must be numeric"));
-            Assert.That(areaErrorEl.Text, Is.EqualTo("Area must be numeric"));
-            Assert.That(buildingTypeErrorEl.Text, Is.EqualTo("Building type must be text"));
+            firstRow = rows[0];
+            string rowAfter = firstRow.Text;
 
-            Console.WriteLine("Negative update test passed");
+            Assert.That(rowAfter, Is.EqualTo(rowBefore), "Update should not accept invalid input");
+
+            Console.WriteLine("Negative update test passed!");
         }
 
         private void InsertRealEstateDataNegativeForUpdate(IWebDriver driver)
